@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "22550268821",
+    "project_id": "jobpostapp-c0d65",
+    "storage_bucket": "jobpostapp-c0d65.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:22550268821:android:3ea2620e5f507b5fb6049c",
+        "android_client_info": {
+          "package_name": "com.limon.job_post_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnVN4ByOWeX8aY4BAIFzcJ0eOv-6PdR_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
