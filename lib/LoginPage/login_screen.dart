@@ -1,5 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:job_post_app/ForgetPassword/forget_password_screen.dart';
+import 'package:job_post_app/Services/global_methods.dart';
 import 'package:job_post_app/Services/global_veriables.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,6 +21,13 @@ class _LoginScreenState extends State<LoginScreen>
 
   final _loginFormKey = GlobalKey<FormState>();
   FocusNode _passFocusNode = FocusNode();
+  final TextEditingController _emailTextController =
+      TextEditingController(text: '');
+  final TextEditingController _passwordTextController =
+      TextEditingController(text: '');
+  bool _obscureText = true;
+  bool _isLoading = false;
+  FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void dispose() {
@@ -41,6 +53,35 @@ class _LoginScreenState extends State<LoginScreen>
     _animationController.forward();
 
     super.initState();
+  }
+
+  void _submitFormOnLogin() async {
+    final isValid = _loginFormKey.currentState!.validate();
+    if (isValid) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await _auth.signInWithEmailAndPassword(
+            email: _emailTextController.text.trim().toLowerCase(),
+            password: _passwordTextController.text.trim());
+
+        Navigator.canPop(context) ? Navigator.pop(context) : null;
+        print('success');
+      } catch (error) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        GlobalMethod.showErrorDialog(err: error.toString(), ctx: context);
+
+        print("error occurred $error");
+      }
+    }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -81,10 +122,128 @@ class _LoginScreenState extends State<LoginScreen>
                       key: _loginFormKey,
                       child: Column(
                         children: [
+                          // email
                           TextFormField(
                             textInputAction: TextInputAction.next,
                             onEditingComplete: () => FocusScope.of(context)
                                 .requestFocus(_passFocusNode),
+                            keyboardType: TextInputType.emailAddress,
+                            controller: _emailTextController,
+                            validator: (value) {
+                              if (value!.isEmpty || !value.contains("@")) {
+                                return "Please enter a valid Email address";
+                              } else {
+                                return null;
+                              }
+                            },
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                                hintText: "Email",
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.white)),
+                                focusedBorder: UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.white)),
+                                errorBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.red))),
+                          ),
+                          SizedBox(
+                            height: height * 0.04,
+                          ),
+                          // password
+                          TextFormField(
+                              textInputAction: TextInputAction.next,
+                              focusNode: _passFocusNode,
+                              controller: _passwordTextController,
+                              obscureText:
+                                  !_obscureText, // it's dynmically chnage it
+                              keyboardType: TextInputType.visiblePassword,
+                              validator: (value) {
+                                if (value!.isEmpty || value.length > 7) {
+                                  return "Please enter a valid password";
+                                } else {
+                                  return null;
+                                }
+                              },
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                  suffixIcon: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _obscureText = !_obscureText;
+                                      });
+                                    },
+                                    child: Icon(
+                                      _obscureText
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  hintText: "Password",
+                                  hintStyle:
+                                      const TextStyle(color: Colors.white),
+                                  enabledBorder: const UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.white)),
+                                  focusedBorder: const UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.white)),
+                                  errorBorder: const UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.red)))),
+                          SizedBox(
+                            height: height * 0.015,
+                          ),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) =>
+                                              ForgetPasswordScreen()));
+                                },
+                                child: Text(
+                                  "Forget password?",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontStyle: FontStyle.italic,
+                                      fontSize: width * 0.040),
+                                )),
+                          ),
+                          SizedBox(
+                            height: height * 0.010,
+                          ),
+                          MaterialButton(
+                            onPressed: () {
+                              _submitFormOnLogin();
+                              // GlobalMethod.showErrorDialog(
+                              //     err: '', ctx: context);
+                            },
+                            color: Colors.cyan,
+                            elevation: 8,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(13)),
+                            child: Padding(
+                              padding:
+                                  EdgeInsets.symmetric(vertical: width * 0.010),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Login',
+                                    style: TextStyle(
+                                        fontSize: width * 0.045,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  )
+                                ],
+                              ),
+                            ),
                           )
                         ],
                       ))
