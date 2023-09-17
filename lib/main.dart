@@ -55,11 +55,17 @@ final Future<FirebaseApp> _initialization = Firebase.initializeApp();
           }
           return MaterialApp(
             title: "Job Post App",
+            debugShowCheckedModeBanner: false,
             theme: ThemeData(
               scaffoldBackgroundColor: Colors.black,
+
               primaryColor: Colors.blue
             ),
-            home: Scaffold(),
+            home: Scaffold(
+              appBar: AppBar(
+                title: const Text('Job Partial App'),
+              ),
+            ),
           );
         });
   }
