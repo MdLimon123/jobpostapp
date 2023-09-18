@@ -3,10 +3,14 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:job_post_app/Services/global_methods.dart';
 import 'package:job_post_app/Services/global_veriables.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -40,10 +44,21 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
   final _signUpFormKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  String? imageUrl;
 
   @override
   void dispose() {
     _animationController.dispose();
+    _fullNameController.dispose();
+    _emailTextController.dispose();
+    _passwordTextController.dispose();
+    _phoneNumberController.dispose();
+    _emailFocusNode.dispose();
+    _passFocusNode.dispose();
+    _positionCPFocusNode.dispose();
+    _phoneFocusNode.dispose();
     super.dispose();
   }
 
@@ -66,6 +81,7 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
     super.initState();
   }
 
+  // camera and gallery dialog box
   void _showImageDialog(){
 
     showDialog(
@@ -117,7 +133,7 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
     );
   }
 
-
+// pick image for camera
   void _getFromCamera()async{
     XFile? pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
     _cropImage(pickedFile!.path);
@@ -125,12 +141,14 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
 
   }
 
+  // pick image for gallery
   void _getFromGallery()async{
     XFile? pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     _cropImage(pickedFile!.path);
     Navigator.pop(context);
   }
 
+  // crop image method
   void _cropImage(filePath)async{
     CroppedFile? croppedImage = await ImageCropper().cropImage(sourcePath: filePath,
     maxHeight: 1080,
@@ -143,6 +161,62 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
     }
 
   }
+
+  void _submitFormOnSignUp()async{
+
+    final isValid = _signUpFormKey.currentState!.validate();
+
+    if(isValid){
+      if(imageFile == null){
+
+        GlobalMethod.showErrorDialog(
+            err: "Please pick on image",
+            ctx: context);
+        return;
+      }
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      try{
+        await _auth.createUserWithEmailAndPassword(
+            email: _emailTextController.text.trim().toLowerCase(),
+            password: _passwordTextController.text.trim());
+
+        final User? user = _auth.currentUser;
+        final _uid = user!.uid;
+        final ref = FirebaseStorage.instance.ref().child('userImages').child(_uid + '.jpg');
+        await ref.putFile(imageFile!);
+        imageUrl = await ref.getDownloadURL();
+
+        FirebaseFirestore.instance.collection('users').doc(_uid).set({
+          'id': _uid,
+          'name': _fullNameController.text,
+          'email': _emailTextController.text,
+          'userImage': imageUrl,
+          'phoneNumber': _phoneNumberController.text,
+          'location': _locationController.text,
+          'createdAt': Timestamp.now()
+
+        });
+
+        Navigator.canPop(context)? Navigator.pop(context) : null;
+
+      }catch(error){
+        setState(() {
+          _isLoading = false;
+        });
+        GlobalMethod.showErrorDialog(err: error.toString(), ctx: context);
+      }
+
+    }
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+
 
 
   @override
@@ -274,7 +348,7 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                               keyboardType: TextInputType.visiblePassword,
                               validator: (value) {
                                 if (value!.isEmpty || value.length > 7) {
-                                  return "Please enter a valid password";
+                                  return "Please enter a valid password for 7 character";
                                 } else {
                                   return null;
                                 }
@@ -375,7 +449,7 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
 
                           _isLoading?
                               Center(
-                                child: Container(
+                                child: SizedBox(
                                   height: width * 0.070,
                                   width: width * 0.070,
                                   child: const CircularProgressIndicator(),
@@ -384,6 +458,8 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                             onPressed: () {
 
                               // Create submit Form On Signup
+
+                              _submitFormOnSignUp();
                             },
                             color: Colors.cyan,
                             elevation: 8,
@@ -408,6 +484,8 @@ class _SignUpScreenState extends State<SignUpScreen> with TickerProviderStateMix
                           ),
 
                           SizedBox(height: height * 0.040,),
+
+                          // already have and account or signup
                           Center(
                             child: RichText(text: TextSpan(
                               children: [
