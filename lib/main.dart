@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:job_post_app/LoginPage/login_screen.dart';
+
+import 'package:job_post_app/user_state.dart';
 
 import 'firebase_options.dart';
 
@@ -65,7 +66,7 @@ class MyApp extends StatelessWidget {
               primaryColor: Colors.blue
             ),
 
-            home: LoginScreen(),
+            home: UserState(),
 
           );
         });
