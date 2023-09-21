@@ -1,6 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:job_post_app/Persistent/persistent.dart';
 import 'package:job_post_app/Services/global_methods.dart';
 import 'package:uuid/uuid.dart';
@@ -28,6 +31,16 @@ class _UploadJobNowState extends State<UploadJobNow> {
   bool _isLoading = false;
   DateTime? picked;
   Timestamp? deadlineDateTimeStamp;
+
+  @override
+  void dispose() {
+    _jobTitleController.dispose();
+    _jobCategoryController.dispose();
+    _jobDescriptionController.dispose();
+    _deadlineDateController.dispose();
+
+    super.dispose();
+  }
 
   // title text
   Widget _textTitles({required String label}) {
@@ -96,7 +109,7 @@ class _UploadJobNowState extends State<UploadJobNow> {
               style: TextStyle(fontSize: 20, color: Colors.white),
             ),
             content: Container(
-              width: size.width * 0.9,
+              width: size.width * 0.12,
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: Persistent.jobCategoryList.length,
@@ -113,12 +126,12 @@ class _UploadJobNowState extends State<UploadJobNow> {
                       children: [
                         const Icon(Icons.arrow_right_alt_outlined,
                         color: Colors.grey,),
-                      Padding(padding: const EdgeInsets.all(8.0),
+                      Padding(padding: const EdgeInsets.all(5.0),
                       child: Text(
                         Persistent.jobCategoryList[index],
                         style: const TextStyle(
                           color: Colors.grey,
-                          fontSize: 16,
+                          fontSize: 14,
 
                         ),
                       ),
@@ -165,6 +178,7 @@ void _pickDateDialog()async{
 }
 
 // upload data in frebasefirestore
+
 void _uploadTask()async{
 
     final jobId = const Uuid().v4();
@@ -202,7 +216,37 @@ void _uploadTask()async{
           'applicants':0,
 
         });
+
+        await Fluttertoast.showToast(
+            msg: 'The task has been uploaded',
+          toastLength: Toast.LENGTH_LONG,
+          backgroundColor: Colors.grey,
+          fontSize: 18.0
+        );
+
+        _jobTitleController.clear();
+        _jobDescriptionController.clear();
+        setState(() {
+          _jobCategoryController.text = "Choose job category";
+          _deadlineDateController.text = "Choose job Deadline date";
+        });
+
+      }catch(error){
+       {
+         setState(() {
+           _isLoading = false;
+         });
+
+         GlobalMethod.showErrorDialog(err: error.toString(), ctx: context);
+       }
+      }finally{
+        setState(() {
+          _isLoading = false;
+        });
       }
+    }
+    else{
+      debugPrint('Its not valid');
     }
 
 }
@@ -315,7 +359,7 @@ void _uploadTask()async{
                               ? const CircularProgressIndicator()
                               : MaterialButton(
                                   onPressed: () {
-
+                                    _uploadTask();
                                   },
                                   color: Colors.black,
                                   elevation: 8,
