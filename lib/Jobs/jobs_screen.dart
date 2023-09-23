@@ -139,10 +139,10 @@ class _JobsScreenState extends State<JobsScreen> {
             stream: FirebaseFirestore.instance
                 .collection("jobs")
                 .where('jobCategory', isEqualTo: jobCategoryFilter)
-                .where('recruitmen', isEqualTo: true)
+                //.where('recruitment', isEqualTo: true)
                 .orderBy('createdAt', descending: false)
                 .snapshots(),
-            builder: (context, AsyncSnapshot snapshot) {
+            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
                   child: CircularProgressIndicator(),
@@ -168,7 +168,7 @@ class _JobsScreenState extends State<JobsScreen> {
                       });
                 } else {
                   return const Center(
-                    child: Text('There is no jobs'),
+                    child: Text('There is no jobs '),
                   );
                 }
               }

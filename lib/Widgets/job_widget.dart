@@ -8,7 +8,7 @@ class JobWidget extends StatefulWidget {
   final String userImage;
   final String name;
   final String email;
-  final String recruitment;
+  final bool recruitment;
   final String loaction;
 
   const JobWidget(
@@ -33,9 +33,9 @@ class _JobWidgetState extends State<JobWidget> {
     var height = MediaQuery.of(context).size.height;
     return Card(
       color: Colors.white24,
-      elevation: 0,
+      elevation: 5,
       margin: EdgeInsets.symmetric(
-          horizontal: width * 0.010, vertical: height * 0.08),
+          horizontal: width * 0.010, vertical: height * 0.01),
       child: ListTile(
         onTap: () {},
         onLongPress: () {},
@@ -53,7 +53,7 @@ class _JobWidgetState extends State<JobWidget> {
           style: TextStyle(
               color: Colors.amber,
               fontWeight: FontWeight.bold,
-              fontSize: width * 0.040),
+              fontSize: width * 0.045),
         ),
         subtitle: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -65,19 +65,22 @@ class _JobWidgetState extends State<JobWidget> {
                 style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
-                    fontSize: width * 0.030)),
+                    fontSize: width * 0.040)),
             SizedBox(
-              height: height * 0.08,
+              height: height * 0.008,
             ),
             Text(widget.jobDescription,
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.black, fontSize: width * 0.035)),
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: width * 0.035,
+                    fontWeight: FontWeight.w600)),
           ],
         ),
         trailing: Icon(
           Icons.keyboard_arrow_right,
-          size: width * 0.040,
+          size: width * 0.050,
           color: Colors.black,
         ),
       ),

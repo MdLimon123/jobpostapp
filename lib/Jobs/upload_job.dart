@@ -26,7 +26,8 @@ class _UploadJobNowState extends State<UploadJobNow> {
   final TextEditingController _jobTitleController = TextEditingController();
   final TextEditingController _jobDescriptionController =
       TextEditingController();
-  final TextEditingController _deadlineDateController = TextEditingController(text: 'Job Deadline Date');
+  final TextEditingController _deadlineDateController =
+      TextEditingController(text: 'Job Deadline Date');
 
   bool _isLoading = false;
   DateTime? picked;
@@ -122,20 +123,22 @@ class _UploadJobNowState extends State<UploadJobNow> {
                       });
                       Navigator.pop(context);
                     },
-                    child:  Row(
+                    child: Row(
                       children: [
-                        const Icon(Icons.arrow_right_alt_outlined,
-                        color: Colors.grey,),
-                      Padding(padding: const EdgeInsets.all(5.0),
-                      child: Text(
-                        Persistent.jobCategoryList[index],
-                        style: const TextStyle(
+                        const Icon(
+                          Icons.arrow_right_alt_outlined,
                           color: Colors.grey,
-                          fontSize: 14,
-
                         ),
-                      ),
-                      )
+                        Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: Text(
+                            Persistent.jobCategoryList[index],
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
+                          ),
+                        )
                       ],
                     ),
                   );
@@ -144,85 +147,79 @@ class _UploadJobNowState extends State<UploadJobNow> {
             ),
             actions: [
               TextButton(
-                  onPressed: (){
+                  onPressed: () {
                     Navigator.canPop(context) ? Navigator.pop(context) : null;
                   },
-                  child: const Text('Cancel',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16
-                  ),))
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ))
             ],
           );
         });
   }
 
-
   // date pick
-void _pickDateDialog()async{
-
+  void _pickDateDialog() async {
     picked = await showDatePicker(
         context: context,
-        initialDate: DateTime.now() ,
+        initialDate: DateTime.now(),
+        firstDate: DateTime.now().subtract(const Duration(days: 0)),
+        lastDate: DateTime(2100));
 
-        firstDate: DateTime.now().subtract(const Duration(days: 0))
-        , lastDate: DateTime(2100));
-
-    if(picked !=null){
+    if (picked != null) {
       setState(() {
-        _deadlineDateController.text = '${picked!.year} - ${picked!.month} - ${picked!.day}';
-        deadlineDateTimeStamp = Timestamp.fromMicrosecondsSinceEpoch(picked!.millisecondsSinceEpoch);
-
+        _deadlineDateController.text =
+            '${picked!.year} - ${picked!.month} - ${picked!.day}';
+        deadlineDateTimeStamp = Timestamp.fromMicrosecondsSinceEpoch(
+            picked!.millisecondsSinceEpoch);
       });
     }
-}
+  }
 
 // upload data in frebasefirestore
 
-void _uploadTask()async{
-
+  void _uploadTask() async {
     final jobId = const Uuid().v4();
     User? user = FirebaseAuth.instance.currentUser;
     final _uid = user!.uid;
     final isValid = _formKey.currentState!.validate();
 
-    if(isValid){
-      if(_deadlineDateController.text == 'Choose job Deadline date' || _jobCategoryController.text == 'Choose job category'){
+    if (isValid) {
+      if (_deadlineDateController.text == 'Choose job Deadline date' ||
+          _jobCategoryController.text == 'Choose job category') {
         GlobalMethod.showErrorDialog(
-            err: 'Please pick everything',
-            ctx: context);
+            err: 'Please pick everything', ctx: context);
         return;
       }
       setState(() {
         _isLoading = true;
       });
 
-      try{
+      try {
         await FirebaseFirestore.instance.collection('jobs').doc(jobId).set({
-          'jobId':jobId,
+          'jobId': jobId,
           'uploadedBy': _uid,
-          'email':user.email,
+          'email': user.email,
           'jobTitle': _jobTitleController.text,
           'jobDescription': _jobDescriptionController.text,
           'deadlineDate': _deadlineDateController.text,
-          'deadlineDateTimeStamp':deadlineDateTimeStamp,
+          'deadlineDateTimeStamp': deadlineDateTimeStamp,
           'jobCategory': _jobCategoryController.text,
-          'jobComments':[],
+          'jobComments': [],
           'recruitment': true,
           'createdAt': Timestamp.now(),
           'name': name,
           'userImage': userImage,
           'location': location,
-          'applicants':0,
-
+          'applicants': 0,
         });
 
         await Fluttertoast.showToast(
             msg: 'The task has been uploaded',
-          toastLength: Toast.LENGTH_LONG,
-          backgroundColor: Colors.grey,
-          fontSize: 18.0
-        );
+            toastLength: Toast.LENGTH_LONG,
+            backgroundColor: Colors.grey,
+            fontSize: 18.0);
 
         _jobTitleController.clear();
         _jobDescriptionController.clear();
@@ -230,27 +227,42 @@ void _uploadTask()async{
           _jobCategoryController.text = "Choose job category";
           _deadlineDateController.text = "Choose job Deadline date";
         });
+      } catch (error) {
+        {
+          setState(() {
+            _isLoading = false;
+          });
 
-      }catch(error){
-       {
-         setState(() {
-           _isLoading = false;
-         });
-
-         GlobalMethod.showErrorDialog(err: error.toString(), ctx: context);
-       }
-      }finally{
+          GlobalMethod.showErrorDialog(err: error.toString(), ctx: context);
+        }
+      } finally {
         setState(() {
           _isLoading = false;
         });
       }
-    }
-    else{
+    } else {
       debugPrint('Its not valid');
     }
+  }
 
-}
+  void getMyData() async {
+    final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get();
 
+    setState(() {
+      name = userDoc.get('name');
+      userImage = userDoc.get('userImage');
+      location = userDoc.get('location');
+    });
+  }
+
+  @override
+  void initState() {
+    getMyData();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -324,7 +336,7 @@ void _uploadTask()async{
                                     controller: _jobCategoryController,
                                     enabled: false,
                                     fct: () {
-                                      _showTaskCategoriesDialog(size: size );
+                                      _showTaskCategoriesDialog(size: size);
                                     },
                                     maxLength: 100),
                                 _textTitles(label: 'Job Title :'),
