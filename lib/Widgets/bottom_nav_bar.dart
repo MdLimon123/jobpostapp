@@ -53,7 +53,7 @@ class BottomNavigationBarForApp extends StatelessWidget {
                     _auth.signOut();
                     Navigator.canPop(context) ? Navigator.pop(context) : null;
                     Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (_) => UserState()));
+                        MaterialPageRoute(builder: (_) => const UserState()));
                   },
                   child: const Text(
                     'Yes',
@@ -106,16 +106,16 @@ class BottomNavigationBarForApp extends StatelessWidget {
       onTap: (index) {
         if (index == 0) {
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => JobsScreen()));
+              context, MaterialPageRoute(builder: (_) => const JobsScreen()));
         } else if (index == 1) {
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (_) => AllWorkersScreen()));
         } else if (index == 2) {
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => UploadJobNow()));
+              context, MaterialPageRoute(builder: (_) => const UploadJobNow()));
         } else if (index == 3) {
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => ProfileScreen()));
+              context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
         } else if (index == 4) {
           _logout(context);
         }

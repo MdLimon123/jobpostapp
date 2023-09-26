@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:job_post_app/Jobs/job_details.dart';
 import 'package:job_post_app/Services/global_methods.dart';
 
 class JobWidget extends StatefulWidget {
@@ -99,7 +100,13 @@ class _JobWidgetState extends State<JobWidget> {
       margin: EdgeInsets.symmetric(
           horizontal: width * 0.010, vertical: height * 0.01),
       child: ListTile(
-        onTap: () {},
+        onTap: () {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=> JobDetailsScreen(
+            uploadedBy: widget.uploadedBy,
+            jobID: widget.jobId,
+          )));
+
+        },
         onLongPress: () {
           _deleteDialog();
         },
