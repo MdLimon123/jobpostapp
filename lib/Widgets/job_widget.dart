@@ -1,4 +1,13 @@
+
+
+
+
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:job_post_app/Services/global_methods.dart';
 
 class JobWidget extends StatefulWidget {
   final String jobTitle;
@@ -27,6 +36,59 @@ class JobWidget extends StatefulWidget {
 }
 
 class _JobWidgetState extends State<JobWidget> {
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  _deleteDialog(){
+
+    User? user = _auth.currentUser;
+    final _uid = user!.uid;
+    showDialog(
+        context: context,
+        builder:(ctx){
+          return AlertDialog(
+            actions: [
+              TextButton(
+                  onPressed: ()async{
+                    try{
+                      if(widget.uploadedBy == _uid){
+                        await FirebaseFirestore.instance.collection('jobs')
+                            .doc(widget.jobId)
+                            .delete();
+
+                        await Fluttertoast.showToast(msg: 'Job has been deleted',
+                        toastLength: Toast.LENGTH_LONG,
+                        backgroundColor: Colors.grey,
+                        fontSize: 18.0);
+
+                        // ignore: use_build_context_synchronously
+                        Navigator.canPop(context)? Navigator.pop(context) : null;
+                      }else{
+                        print(widget.jobId);
+                        GlobalMethod.showErrorDialog(err: 'You cannot perform this action', ctx: ctx);
+                      }
+                    }catch (error){
+                      // ignore: use_build_context_synchronously
+                      GlobalMethod.showErrorDialog(err: 'This task cannot be deleted', ctx: ctx);
+
+                    }finally{}
+                  },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.delete,
+                      color: Colors.red,),
+                      Text('Delete',
+                      style: TextStyle(color: Colors.red),)
+                    ],
+                  ))
+            ],
+          );
+        });
+
+  }
+
+
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
@@ -38,7 +100,9 @@ class _JobWidgetState extends State<JobWidget> {
           horizontal: width * 0.010, vertical: height * 0.01),
       child: ListTile(
         onTap: () {},
-        onLongPress: () {},
+        onLongPress: () {
+          _deleteDialog();
+        },
         contentPadding: EdgeInsets.symmetric(
             horizontal: width * 0.020, vertical: height * 0.010),
         leading: Container(
@@ -80,7 +144,7 @@ class _JobWidgetState extends State<JobWidget> {
         ),
         trailing: Icon(
           Icons.keyboard_arrow_right,
-          size: width * 0.050,
+          size: width * 0.060,
           color: Colors.black,
         ),
       ),
