@@ -1,10 +1,13 @@
 
 
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:job_post_app/Jobs/jobs_screen.dart';
 import 'package:job_post_app/Services/global_methods.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class JobDetailsScreen extends StatefulWidget {
 
@@ -110,6 +113,35 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       ],
     );
   }
+
+  applyForJob(){
+
+    final Uri params = Uri(
+      scheme: 'mailto',
+      path: emailCompany,
+      query: 'subject=Applying for $jobTitle&body=Hello, please attach Resume CV file',
+
+    );
+
+    final url = params.toString();
+    launchUrlString(url);
+   addNewApplicant();
+
+  }
+
+  void addNewApplicant()async{
+    var docRef = FirebaseFirestore.instance
+        .collection('jobs')
+        .doc(widget.jobID);
+
+    docRef.update({
+      'applicants': applicants + 1
+    });
+
+    Navigator.pop(context);
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -392,7 +424,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                         SizedBox(height: height * 0.006,),
                         Center(
                           child: MaterialButton(
-                            onPressed: (){},
+                            onPressed: (){
+
+                              applyForJob();
+                            },
                             color: Colors.blueAccent,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
