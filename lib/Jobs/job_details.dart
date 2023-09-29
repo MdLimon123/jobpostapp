@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:job_post_app/Jobs/jobs_screen.dart';
 import 'package:job_post_app/Services/global_methods.dart';
+import 'package:job_post_app/Services/global_veriables.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:uuid/uuid.dart';
+import 'package:uuid/v4.dart';
 
 class JobDetailsScreen extends StatefulWidget {
   final String uploadedBy;
@@ -35,6 +39,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   String? emailCompany = '';
   int applicants = 0;
   bool isDeadlineAvailable = false;
+  bool showComment = false;
 
   void getJobData() async {
     final DocumentSnapshot userDoc = await FirebaseFirestore.instance
@@ -499,7 +504,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                                 color: Colors.white),
                                             maxLength: 200,
                                             keyboardType: TextInputType.text,
-                                            minLines: 6,
+                                            maxLines: 6,
                                             decoration: InputDecoration(
                                                 filled: true,
                                                 fillColor: Theme.of(context)
@@ -522,13 +527,63 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                             padding: EdgeInsets.symmetric(
                                                 horizontal: width * 0.008),
                                             child: MaterialButton(
-                                              onPressed: () {},
+                                              onPressed: () async {
+                                                if (_commentController
+                                                        .text.length <
+                                                    7) {
+                                                  GlobalMethod.showErrorDialog(
+                                                      err:
+                                                          'Comment cannot be less the 7 characters',
+                                                      ctx: context);
+                                                } else {
+                                                  final _generatedId =
+                                                      const Uuid().v4();
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('jobs')
+                                                      .doc(widget.jobID)
+                                                      .update({
+                                                    'jobComment':
+                                                        FieldValue.arrayUnion([
+                                                      {
+                                                        'userId': FirebaseAuth
+                                                            .instance
+                                                            .currentUser!
+                                                            .uid,
+                                                        'commentId':
+                                                            _generatedId,
+                                                        'name': name,
+                                                        'userImageUrl':
+                                                            userImage,
+                                                        'commentBody':
+                                                            _commentController
+                                                                .text,
+                                                        'time': Timestamp.now()
+                                                      }
+                                                    ])
+                                                  });
+                                                  Fluttertoast.showToast(
+                                                      msg:
+                                                          'Your comment has been added',
+                                                      toastLength:
+                                                          Toast.LENGTH_LONG,
+                                                      backgroundColor:
+                                                          Colors.grey,
+                                                      fontSize: width * 0.040);
+
+                                                  _commentController.clear();
+                                                }
+
+                                                setState(() {
+                                                  showComment = true;
+                                                });
+                                              },
                                               color: Colors.blueAccent,
                                               elevation: 0,
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(
-                                                        width * 0.08),
+                                                        width * 0.02),
                                               ),
                                               child: Text(
                                                 'Post',
@@ -541,7 +596,13 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                             ),
                                           ),
                                           TextButton(
-                                              onPressed: () {},
+                                              onPressed: () {
+                                                setState(() {
+                                                  _isCommenting =
+                                                      !_isCommenting;
+                                                  showComment = false;
+                                                });
+                                              },
                                               child: const Text(
                                                 'Cancel',
                                               ))
@@ -553,7 +614,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       IconButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            setState(() {
+                                              _isCommenting = !_isCommenting;
+                                            });
+                                          },
                                           icon: Icon(
                                             Icons.add_comment,
                                             color: Colors.blue,
@@ -563,7 +628,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                         width: width * 0.005,
                                       ),
                                       IconButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            setState(() {
+                                              showComment = false;
+                                            });
+                                          },
                                           icon: Icon(
                                             Icons.arrow_drop_down_circle,
                                             color: Colors.blue,
