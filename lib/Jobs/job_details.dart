@@ -5,9 +5,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:job_post_app/Jobs/jobs_screen.dart';
 import 'package:job_post_app/Services/global_methods.dart';
 import 'package:job_post_app/Services/global_veriables.dart';
+import 'package:job_post_app/Widgets/comment_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:uuid/uuid.dart';
-import 'package:uuid/v4.dart';
 
 class JobDetailsScreen extends StatefulWidget {
   final String uploadedBy;
@@ -630,7 +630,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                       IconButton(
                                           onPressed: () {
                                             setState(() {
-                                              showComment = false;
+                                              showComment = true;
                                             });
                                           },
                                           icon: Icon(
@@ -639,11 +639,70 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                             size: width * 0.080,
                                           )),
                                     ],
-                                  ))
+                                  )),
+                        showComment == false
+                            ? Container()
+                            : Padding(
+                                padding: EdgeInsets.all(width * 0.016),
+                                child: FutureBuilder<DocumentSnapshot>(
+                                  future: FirebaseFirestore.instance
+                                      .collection('jobs')
+                                      .doc(widget.jobID)
+                                      .get(),
+                                  builder: (context,AsyncSnapshot<DocumentSnapshot> snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    } else {
+                                      if (snapshot.data == null) {
+                                        const Center(
+                                          child:
+                                              Text('No Comment for this job'),
+                                        );
+                                      }
+                                    }
+                                    return ListView.separated(
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemBuilder: (context, index) {
+                                          return CommentWidget(
+                                              commentId:
+                                                  snapshot.data!['jobComment']
+                                                      [index]['commentId'],
+                                              commenterId:
+                                                  snapshot.data!['jobComment']
+                                                      [index]['userId'],
+                                              commenterName:
+                                                  snapshot.data!['jobComment']
+                                                      [index]['name'],
+                                              commentBody:
+                                                  snapshot.data!['jobComment']
+                                                      [index]['commentBody'],
+                                              commenterImageUrl:
+                                                  snapshot.data!['jobComment']
+                                                      [index]['userImageUrl']);
+                                        },
+                                        separatorBuilder: (context, index) {
+                                          return const Divider(
+                                            thickness: 1,
+                                            color: Colors.grey,
+                                          );
+                                        },
+                                        itemCount: snapshot
+                                            .data!['jobComment'].length);
+                                  },
+                                ),
+                              )
                       ],
                     ),
                   ),
                 ),
+              ),
+              SizedBox(
+                height: height * 0.050,
               )
             ],
           ),
