@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:job_post_app/Search/profile_company.dart';
 
 class CommentWidget extends StatefulWidget {
 
@@ -39,7 +40,9 @@ class _CommentWidgetState extends State<CommentWidget> {
     var width = MediaQuery.of(context).size.width;
     var height = MediaQuery.of(context).size.height;
     return InkWell(
-      onTap: (){},
+      onTap: (){
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> ProfileScreen(userID: widget.commenterId)));
+      },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
